@@ -44,6 +44,7 @@ category_groups_csv_schema = StructType([
     StructField('category_groups_list', StringType()),
 ])
 
+OUTPUT_FORMATS = ('csv', 'parquet', 'avro')
 
 config = {
     'funds': {
@@ -81,7 +82,22 @@ config = {
             'updated_at',
             'category_groups_list'
         ]
-    }
+    },
+    'organizations': {
+        'sep': ',',
+        'fields': [
+            'uuid',
+            'name',
+            'permalink',
+        ]
+    },
+    'parent_organizations': {
+        'sep': ',',
+        'fields': [
+            'uuid',
+            'parent_uuid',
+        ]
+    },
 }
 
 
@@ -90,21 +106,35 @@ def build_spark_session(spark_root, session_name):
     return SparkSession.builder.appName(session_name).getOrCreate()
 
 
-def get_dataframe(spark, csv_file, schema, sep):
-    data_frame = spark.read.csv(
-            path=csv_file,
-            schema=schema,
-            sep=sep,
-            header=True)
+def get_dataframe(spark, csv_file, sep, schema=None, infer_schema=False):
+    read_params = {
+        'path': csv_file,
+        'sep': sep,
+        'header': True
+    }
+
+    if infer_schema:
+        read_params['inferSchema'] = infer_schema
+    else:
+        read_params['schema'] = schema
+
+    data_frame = spark.read.csv(**read_params)
     return data_frame
 
 
 def get_dataframe_from_csv(spark, csv_file, input_type):
-    data_frame = get_dataframe(
-        spark,
-        csv_file,
-        schema=config[input_type]['schema'],
-        sep=config[input_type]['sep'])
+    read_params = {
+        'spark': spark,
+        'csv_file': csv_file,
+        'sep': config[input_type]['sep'],
+    }
+    if input_type in ('organizations', 'parent_organizations'):
+        read_params['infer_schema'] = True
+    else:
+        read_params['infer_schema'] = False
+        read_params['schema'] = config[input_type]['schema']
+
+    data_frame = get_dataframe(**read_params)
     return data_frame
 
 
@@ -123,15 +153,13 @@ def write_to_file(data_frame, output_file, output_format):
 
 
 def check_output_format(output_format):
-    if output_format not in ('parquet', 'avro'):
-        print('Provide valid output format')
-        return
+    if output_format not in OUTPUT_FORMATS:
+        raise Exception('Provide valid output format')
 
 
 def check_input_type(input_type):
     if input_type not in config.keys():
-        print('Provide valid input type')
-        return
+        raise Exception('Provide valid input type')
 
 
 def get_job_args():
