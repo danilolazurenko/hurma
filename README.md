@@ -2,13 +2,13 @@
 Usage:
 
 ```
-python3 job.py 'spark_root_directory' 'path_to_csv_file' 'name_of_output_file' 'type_of_output_file'
+python3 sparkMain.py 'spark_root_directory' 'path_to_csv_file' 'input_type' 'name_of_output_file' 'format_of_output_file' 'session_name'
 ```
 
 example:
 
 ```
-python3 job.py '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7' '/home/ubuntu/Documents/funds_a1.csv' 'reports' 'parquet'
+python3 sparkMain.py '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7' '/home/ubuntu/Documents/funds_a1.csv' 'funds' 'reports' 'parquet' 'Test'
 ```
 
 # TO SETUP
