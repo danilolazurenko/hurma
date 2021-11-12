@@ -106,7 +106,7 @@ def build_spark_session(spark_root, session_name):
     return SparkSession.builder.appName(session_name).getOrCreate()
 
 
-def get_dataframe(spark, csv_file, sep, schema=None, infer_schema=False):
+def get_dataframe(spark, csv_file, sep, schema=None, infer_schema=False, rows_limit=None):
     read_params = {
         'path': csv_file,
         'sep': sep,
@@ -117,16 +117,18 @@ def get_dataframe(spark, csv_file, sep, schema=None, infer_schema=False):
         read_params['inferSchema'] = infer_schema
     else:
         read_params['schema'] = schema
-
+    if rows_limit is not None:
+        return spark.read.csv(**read_params).limit(rows_limit)
     data_frame = spark.read.csv(**read_params)
     return data_frame
 
 
-def get_dataframe_from_csv(spark, csv_file, input_type):
+def get_dataframe_from_csv(spark, csv_file, input_type, rows_limit=None):
     read_params = {
         'spark': spark,
         'csv_file': csv_file,
         'sep': config[input_type]['sep'],
+        'rows_limit': rows_limit,
     }
     if input_type in ('organizations', 'parent_organizations'):
         read_params['infer_schema'] = True
@@ -140,11 +142,11 @@ def get_dataframe_from_csv(spark, csv_file, input_type):
 
 def transform_dataframe(data_frame, input_type):
     if input_type == 'funds':
-        data_frame =  (data_frame
-                .withColumn("d1", to_date(col("announced_on"),'yyyy-mm-dd'))
-                .withColumn("d2", to_date(col("announced_on"),'MMM d, yyyy'))
-                .withColumn("announced_on", coalesce('d1', 'd2'))
-                .sort(col('announced_on').desc_nulls_first()))
+        data_frame = (data_frame
+                      .withColumn("d1", to_date(col("announced_on"),'yyyy-mm-dd'))
+                      .withColumn("d2", to_date(col("announced_on"),'MMM d, yyyy'))
+                      .withColumn("announced_on", coalesce('d1', 'd2'))
+                      .sort(col('announced_on').desc_nulls_first()))
     return data_frame.select(config[input_type]['fields'])
 
 
@@ -164,20 +166,28 @@ def check_input_type(input_type):
 
 def get_job_args():
     try:
-        spark_root, csv_file, input_type, output_file, output_format, session_name = sys.argv[1:]
-    except IndexError:
+        if len(sys.argv) == 7:
+            spark_root, csv_file, input_type, output_file, output_format, session_name = sys.argv[1:]
+            rows_limit = None
+        elif len(sys.argv) == 8:
+            spark_root, csv_file, input_type, output_file, output_format, session_name, rows_limit = sys.argv[1:]
+            rows_limit = int(rows_limit)
+    except (IndexError, ValueError):
         print("""
             Positional parameters of job 
             spark_root     '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7'
             csv_file       '/home/ubuntu/Documents/funds_a1.csv'
             input_type     either funds or category_groups   
             output_file    like 'report'
-            output_format    either parquet or avro
+            output_format  either parquet, avro or csv
             session_name   String of session name
+            rows_limit     Optional: how much first rows to read. Example: 1000
             """)
+
     check_output_format(output_format)
     check_input_type(input_type)
-    return spark_root, csv_file, input_type, output_file, output_format, session_name
+
+    return spark_root, csv_file, input_type, output_file, output_format, session_name, rows_limit
 
 
 if __name__ == '__main__':
@@ -189,11 +199,12 @@ if __name__ == '__main__':
     output_file    like '/home/ubuntu/Documents/funds_report'
     output_format  either parquet or avro
     session_name   String of session name
+    rows_limit     Optional: How much first rows to read
     """
 
-    spark_root, csv_file, input_type, output_file, output_format, session_name = get_job_args()
+    spark_root, csv_file, input_type, output_file, output_format, session_name, rows_limit = get_job_args()
 
     spark = build_spark_session(spark_root, session_name)
-    initial_data_frame = get_dataframe_from_csv(spark, csv_file, input_type)
+    initial_data_frame = get_dataframe_from_csv(spark, csv_file, input_type, rows_limit)
     output_data_frame = transform_dataframe(initial_data_frame, input_type)
     write_to_file(output_data_frame, output_file, output_format)

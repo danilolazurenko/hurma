@@ -7,43 +7,43 @@ from sparkMain import write_to_file
 
 def get_job_args():
     try:
-        spark_root, input_file_1, input_file_2, output_file, output_format, session_name = sys.argv[1:]
+        spark_root, parent_org_input, org_input, output_file, output_format, session_name = sys.argv[1:]
     except IndexError:
         print("""
             Positional parameters of job 
             spark_root     '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7'
-            input_file_1   '/home/ubuntu/Documents/parent_organizations'
-            input_file_2   '/home/ubuntu/Documents/organizations'
+            parent_org_input   '/home/ubuntu/Documents/parent_organizations'
+            org_input   '/home/ubuntu/Documents/organizations'
             output_file    like 'organizations_with_parents'
             output_format  csv for example
             session_name   String of session name
             """)
     check_output_format(output_format)
-    return spark_root, input_file_1, input_file_2, output_file, output_format, session_name
+    return spark_root, parent_org_input, org_input, output_file, output_format, session_name
 
 
 if __name__ == '__main__':
     """
     Positional parameters of job 
     spark_root     '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7'
-    input_file_1   '/home/ubuntu/Documents/parent_organizations'
-    input_file_2   '/home/ubuntu/Documents/organizations'
+    parent_org_input   '/home/ubuntu/Documents/parent_organizations'
+    org_input   '/home/ubuntu/Documents/organizations'
     output_file    like 'organizations_with_parents'
     output_format  csv for example
     session_name   String of session name
     """
 
-    spark_root, input_file_1, input_file_2, output_file, output_format, session_name = get_job_args()
+    spark_root, parent_org_input, org_input, output_file, output_format, session_name = get_job_args()
 
     spark = build_spark_session(spark_root, session_name)
-    dataframe_1 = spark.read.parquet(input_file_1)
-    dataframe_2 = spark.read.parquet(input_file_2)
-    output_data_frame = (dataframe_1
-        .select(['parent_uuid', 'uuid', 'name', 'count'])
-        .join(dataframe_2, dataframe_1.uuid == dataframe_2.uuid)
-        .groupBy('parent_uuid').count()
-        .agg(collect_list(uuid).alias(uuid))
-        .agg(collect_list(name).alias(name))
-        )
+    parent_org_df = spark.read.parquet(parent_org_input)
+    org_df = spark.read.parquet(org_input)
+    joined_data_frame = (parent_org_df
+                         .join(org_df, parent_org_df.uuid == org_df.uuid)
+                         .groupBy('parent_uuid'))
+    joined_data_frame.describe()
+    joined_data_frame.showSchema()
+    # .agg(collect_list(uuid).alias(uuid))
+    # .agg(collect_list(name).alias(name))
 
-    write_to_file(output_data_frame, output_file, output_format)
+    # write_to_file(joined_data_frame, output_file, output_format)
