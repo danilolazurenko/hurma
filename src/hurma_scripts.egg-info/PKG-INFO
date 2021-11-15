@@ -1,3 +1,20 @@
+Metadata-Version: 2.1
+Name: hurma-scripts
+Version: 0.0.1
+Summary: Useful spark scripts package
+Home-page: https://github.com/pypa/sampleproject
+Author: Pickle Rick
+Author-email: pickle@rick.com
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENCE
+
 # TESTING SCRIPT FOR SPARK JOB
 Usage:
 
@@ -36,3 +53,5 @@ export SCALA_HOME="/usr/bin"
 export PYSPARK_SUBMIT_ARGS="--master local[3] pyspark-shell"
 export PATH=$PATH:$JAVA_HOME/jre/bin
 ```
+
+

@@ -1,0 +1,10 @@
+LICENCE
+README.md
+pyproject.toml
+setup.cfg
+src/hurma_scripts.egg-info/PKG-INFO
+src/hurma_scripts.egg-info/SOURCES.txt
+src/hurma_scripts.egg-info/dependency_links.txt
+src/hurma_scripts.egg-info/top_level.txt
+src/tests/__init__.py
+src/tests/test_scripts.py
