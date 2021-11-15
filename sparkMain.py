@@ -150,7 +150,9 @@ def transform_dataframe(data_frame, input_type):
     return data_frame.select(config[input_type]['fields'])
 
 
-def write_to_file(data_frame, output_file, output_format):
+def write_to_file(data_frame, output_file, output_format, sep=','):
+    if output_format == 'csv':
+        data_frame.repartition(1).write.csv(output_file, sep=sep)
     data_frame.write.format(output_format).save(output_file)
 
 
@@ -177,7 +179,7 @@ def get_job_args():
             Positional parameters of job 
             spark_root     '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7'
             csv_file       '/home/ubuntu/Documents/funds_a1.csv'
-            input_type     either funds or category_groups   
+            input_type     either funds, category_groups, parent_organizations, organizations
             output_file    like 'report'
             output_format  either parquet, avro or csv
             session_name   String of session name
