@@ -1,14 +1,23 @@
 # TESTING SCRIPT FOR SPARK JOB
 Usage:
 
+for exporting from csv
 ```
 python3 sparkMain.py 'spark_root_directory' 'path_to_csv_file' 'input_type' 'name_of_output_file' 'format_of_output_file' 'session_name'
+```
+for combining 2 files in one with specific transformations
+```
+python3 sparkParentChildrenOrgJoiner.py 'spark_root_directory' 'parent_org_input' 'org_input' 'output_file' 'output_format' 'session_name'
 ```
 
 example:
 
 ```
 python3 sparkMain.py '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7' '/home/ubuntu/Documents/funds_a1.csv' 'funds' 'reports' 'parquet' 'Test'
+```
+
+```
+python3 sparkParentChildrenOrgJoiner.py '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7' '/home/ubuntu/Documents/p_org_report' '/home/ubuntu/Documents/org_report' '/home/ubuntu/Documents/p_c_org_report' 'csv' 'Test'
 ```
 
 # TO SETUP
