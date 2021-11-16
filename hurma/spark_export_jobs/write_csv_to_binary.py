@@ -16,18 +16,6 @@ class InvalidJobParametersException(Exception):
     pass
 
 
-DOCSTRING = '''
-            Positional parameters of job 
-            spark_root     '/home/ubuntu/bin/spark-3.0.3-bin-hadoop2.7'
-            csv_file       '/home/ubuntu/Documents/funds_a1.csv'
-            input_type     either funds, category_groups, parent_organizations, organizations
-            output_file    like 'report'
-            output_format  either parquet, avro or csv
-            session_name   String of session name
-            rows_limit     Optional: how much first rows to read. Example: 1000
-'''
-
-
 funds_csv_schema = StructType([
     StructField('uuid', StringType()),
     StructField('name', StringType()),
@@ -118,7 +106,6 @@ PARENT_ORGANIZATIONS_DATA_CONFIGURATION = {
     }
 
 
-CUSTOM_SEPARATOR_FORMAT = 'csv'
 DATETIME_UNIFICATION_REQUIRED_DATA_TYPE = 'funds'
 SYS_ARGS_LEN_WITHOUT_ROWS_LIMIT = 7
 SYS_ARGS_LEN_WITH_ROWS_LIMIT = 8
@@ -187,32 +174,38 @@ def transform_dataframe(data_frame, input_type):
     return data_frame.select(config[input_type]['fields'])
 
 
-def write_to_file(data_frame, output_file, output_format, sep=DEFAULT_SEPARATOR):
-    if output_format == CUSTOM_SEPARATOR_FORMAT:
-        data_frame.write.csv(output_file, sep=sep)
+def write_to_file(data_frame, output_file, output_format):
     data_frame.write.format(output_format).save(output_file)
 
 
 def check_output_format(output_format):
     if output_format not in OUTPUT_FORMATS:
-        raise InvalidJobParametersException('Provide valid output format')
+        raise InvalidJobParametersException(
+            f'You provided {output_format} output format. Valid output formats are {OUTPUT_FORMATS}')
 
 
 def check_input_type(input_type):
     if input_type not in VALID_INPUT_TYPES:
-        raise InvalidJobParametersException('Provide valid input type')
+        raise InvalidJobParametersException(
+            f'You provided {input_type} input type. Valid input types are {VALID_INPUT_TYPES}')
 
 
 def get_job_args():
     try:
-        if len(sys.argv) == SYS_ARGS_LEN_WITHOUT_ROWS_LIMIT:
+        sys_argv_len = len(sys.argv)
+        if sys_argv_len == SYS_ARGS_LEN_WITHOUT_ROWS_LIMIT:
             spark_root, csv_file, input_type, output_file, output_format, session_name = sys.argv[1:]
             rows_limit = None
-        elif len(sys.argv) == SYS_ARGS_LEN_WITH_ROWS_LIMIT:
+        elif sys_argv_len == SYS_ARGS_LEN_WITH_ROWS_LIMIT:
             spark_root, csv_file, input_type, output_file, output_format, session_name, rows_limit = sys.argv[1:]
             rows_limit = int(rows_limit)
-    except (IndexError, ValueError):
-        print(DOCSTRING)
+        elif sys_argv_len < SYS_ARGS_LEN_WITHOUT_ROWS_LIMIT:
+            raise InvalidJobParametersException('Number of arguments is too small.')
+        elif sys_argv_len > SYS_ARGS_LEN_WITH_ROWS_LIMIT:
+            raise InvalidJobParametersException('Number of arguments is too big.')
+    except (IndexError, ValueError, InvalidJobParametersException) as e:
+        print(main.__doc__)
+        raise e
 
     check_output_format(output_format)
     check_input_type(input_type)
@@ -220,7 +213,7 @@ def get_job_args():
     return spark_root, csv_file, input_type, output_file, output_format, session_name, rows_limit
 
 
-if __name__ == '__main__':
+def main():
     """
     Positional parameters of job 
 
@@ -232,10 +225,15 @@ if __name__ == '__main__':
     session_name   String of session name
     rows_limit     Optional: how much first rows to read. Example: 1000
     """
-
     spark_root, csv_file, input_type, output_file, output_format, session_name, rows_limit = get_job_args()
 
     spark = build_spark_session(spark_root, session_name)
+
     initial_data_frame = get_dataframe_from_csv(spark, csv_file, input_type, rows_limit)
     output_data_frame = transform_dataframe(initial_data_frame, input_type)
+
     write_to_file(output_data_frame, output_file, output_format)
+
+
+if __name__ == '__main__':
+    main()    
