@@ -35,13 +35,11 @@ def get_parent_org_with_children(parent_org_df, org_df):
     return (parent_org_df
             .join(org_df, parent_org_df.uuid == org_df.uuid)
             .groupBy('parent_uuid')
-            .agg(collect_list(org_df.name),
-                 collect_list(org_df.uuid),
+            .agg(collect_list(org_df.name).alias('names'),
+                 collect_list(org_df.uuid).alias('uuids'),
                  count(org_df.uuid))
-            .withColumn('collect_list(uuid)', concat_ws('|',col('collect_list(uuid)')))
-            .withColumn('collect_list(name)', concat_ws('|',col('collect_list(name)')))
-            .withColumnRenamed('collect_list(name)', 'names')
-            .withColumnRenamed('collect_list(uuid)', 'uuids'))
+            .withColumn('uuids', concat_ws('|',col('uuids')))
+            .withColumn('names', concat_ws('|',col('names'))))
 
 
 def main():
@@ -66,7 +64,7 @@ def main():
 
     parent_org_with_children = get_parent_org_with_children(parent_org_df, org_df)
 
-    write_to_file(parent_org_with_children, output_file, output_format, sep='|')
+    write_to_file(parent_org_with_children, output_file, output_format)
 
 
 if __name__ == '__main__':
