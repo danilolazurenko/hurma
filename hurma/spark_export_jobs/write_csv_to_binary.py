@@ -106,7 +106,7 @@ PARENT_ORGANIZATIONS_DATA_CONFIGURATION = {
     }
 
 
-DATETIME_UNIFICATION_REQUIRED_DATA_TYPE = 'funds'
+DATETIME_UNIFICATION_REQUIRED_DATA_TYPES = ('funds', )
 SYS_ARGS_LEN_WITHOUT_ROWS_LIMIT = 7
 SYS_ARGS_LEN_WITH_ROWS_LIMIT = 8
 
@@ -165,7 +165,7 @@ def get_dataframe_from_csv(spark, csv_file, input_type, rows_limit=None):
 
 
 def transform_dataframe(data_frame, input_type):
-    if input_type == DATETIME_UNIFICATION_REQUIRED_DATA_TYPE:
+    if input_type in DATETIME_UNIFICATION_REQUIRED_DATA_TYPES:
         data_frame = (data_frame
                       .withColumn("d1", to_date(col("announced_on"),'yyyy-mm-dd'))
                       .withColumn("d2", to_date(col("announced_on"),'MMM d, yyyy'))
