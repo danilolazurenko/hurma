@@ -1,0 +1,8 @@
+# put development requirements here
+-r requirements.txt
+
+ipython==7.29.0
+jupyter-client==7.0.6
+jupyter-console==6.4.0
+jupyter-core==4.9.1
+pylint==2.11.1
