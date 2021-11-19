@@ -1,4 +1,8 @@
-virtualenv -p python3 venv
+# Create virtualenv and build your python project with this
+# directories for build are in setup.cfg
+# assume that package name is hurma/ and output of build is in
+# dist folder
+virtualenv -p python3.8 venv
 source venv/bin/activate
 pip3 install requirements/requirements.txt
 python3 -m pip install --upgrade build
