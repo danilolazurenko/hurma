@@ -4,3 +4,4 @@ venv/
 quick_launcher.sh
 dist/
 hurma/hurma_scripts.egg-info/
+*.egg
