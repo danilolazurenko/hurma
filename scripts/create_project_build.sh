@@ -4,6 +4,6 @@
 # dist folder
 virtualenv -p python3.8 venv
 source venv/bin/activate
-pip3 install requirements/requirements.txt
+pip3 install -r requirements/requirements.txt
 python3 -m pip install --upgrade build
 python3 -m build
