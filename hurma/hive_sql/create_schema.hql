@@ -1,5 +1,25 @@
-create database if not exists testdb;
-use testdb;
+create database if not exists crunchbase;
+use crunchbase;
+
+create external table if not exists parent_organizations (
+  uuid string,
+  name string,
+  type string,
+  permalink string,
+  cb_url string,
+  rank string,
+  created_at timestamp,
+  updated_at timestamp,
+  parent_uuid string,
+  parent_name string
+)
+row format delimited
+fields terminated by ','
+lines terminated by '\n'
+stored as parquet
+location 'hdfs://namenode:8020/user/hive/warehouse/crunchbase.db/parent_organizations';
+
+
 create external table if not exists organizations (
   uuid string,
   name string,
@@ -15,7 +35,7 @@ create external table if not exists organizations (
   state_code char(2),
   region string,
   city string,
-  address string
+  address string,
   roles string,
   domain string,
   postal_code string,
@@ -46,4 +66,18 @@ create external table if not exists organizations (
 row format delimited
 fields terminated by ','
 lines terminated by '\n'
-stored as textfile location 'hdfs://namenode:8020/user/hive/warehouse/testdb.db/organizations';
+stored as parquet
+location 'hdfs://namenode:8020/user/hive/warehouse/crunchbase.db/organizations';
+
+
+create external table if not exists parent_children_orgs (
+  parent_uuid string,
+  names string,
+  uuids string,
+  count int
+)
+row format delimited
+fields terminated by ','
+lines terminated by '\n'
+stored as parquet
+location 'hdfs://namenode:8020/user/hive/warehouse/crunchbase.db/parent_children_orgs';
