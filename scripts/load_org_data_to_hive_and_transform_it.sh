@@ -9,10 +9,13 @@
 namenode_root=${1:-hdfs://namenode:8020/user/hive/warehouse/crunchbase.db}
 
 
-declare -a arr=(parent_organizations organizations parent_children_orgs)
+declare -a arr=(parent_organizations organizations)
 
 for filename in "${arr[@]}"
 do
+  if ! [ -f "$filename.csv" ] ; then
+	  echo "$filename.csv does not exist"
+  fi
 
   namenode_path="$namenode_root/$filename"
 
