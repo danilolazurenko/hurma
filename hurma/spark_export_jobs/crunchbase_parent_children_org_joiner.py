@@ -37,9 +37,9 @@ def get_parent_org_with_children(parent_org_df, org_df):
             .groupBy('parent_uuid')
             .agg(collect_list(org_df.name).alias('names'),
                  collect_list(org_df.uuid).alias('uuids'),
-                 count(org_df.uuid))
-            .withColumn('uuids', concat_ws('|',col('uuids')))
-            .withColumn('names', concat_ws('|',col('names'))))
+                 count(org_df.uuid).alias('count'))
+            .withColumn('uuids', concat_ws('|', col('uuids')))
+            .withColumn('names', concat_ws('|', col('names'))))
 
 
 def main():
