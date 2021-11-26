@@ -15,18 +15,3 @@ UNION ALL
 (SELECT * FROM parent_children_orgs)
 
 );
-
-INSERT OVERWRITE TABLE parent_children_orgs
-SELECT tmp.parent_uuid,
-       tmp.names,
-       tmp.uuids,
-       tmp.count
-FROM   (SELECT parent_uuid,
-               names,
-               uuids,
-               count,
-               Row_number()
-                 OVER ( partition by ID
-                   ORDER BY parent_uuid, names, uuids) AS rno
-        FROM   parent_children_orgs) as tmp
-WHERE  tmp.rno = 1;
