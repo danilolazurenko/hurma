@@ -1,7 +1,6 @@
 __pycache__
 venv/
 .idea
-quick_launcher.sh
 dist/
 hurma/hurma_scripts.egg-info/
 *.egg
